@@ -1,0 +1,99 @@
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/esp32s2-pinctrl.h>
+#include <zephyr/dt-bindings/pinctrl/esp-pinctrl-common.h>
+#include <zephyr/dt-bindings/pinctrl/esp32s2-gpio-sigmap.h>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+
+/ {
+    aliases {
+        switch1 = &load_switch1;
+        switch2 = &load_switch2;
+        switch3 = &load_switch3;
+        switch4 = &load_switch4;
+        input1 = &input1;
+        input2 = &input2;
+        input3 = &input3;
+        input4 = &input4;
+    };
+
+    load_switch1: load_switch1 {
+        compatible = "power-switch";
+        gpios = <&gpio1 38 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+    };
+
+    load_switch2: load_switch2 {
+        compatible = "power-switch";
+        gpios = <&gpio1 37 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+    };
+
+    load_switch3: load_switch3 {
+        compatible = "power-switch";
+        gpios = <&gpio1 36 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+    };
+
+    load_switch4: load_switch4 {
+        compatible = "power-switch";
+        gpios = <&gpio1 35 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+    };
+
+    input1: input1 {
+        compatible = "user-input";
+        gpios = <&gpio0 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+    };
+
+    input2: input2 {
+        compatible = "user-input";
+        gpios = <&gpio0 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+    };
+
+    input3: input3 {
+        compatible = "user-input";
+        gpios = <&gpio0 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+    };
+
+    input4: input4 {
+        compatible = "user-input";
+        gpios = <&gpio0 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+    };
+
+};
+
+&pinctrl {
+
+    uart1_default: uart1_default {
+        group1 {
+            pinmux = <UART1_TX_GPIO33>;
+            output-high;
+        };
+        group2 {
+            pinmux = <UART1_RX_GPIO34>;
+            bias-pull-up;
+        };
+    };
+
+};
+
+&uart1 {
+    status = "okay";
+    pinctrl-0 = < &uart1_default >;
+    pinctrl-names = "default";
+
+    w1: w1 {
+		compatible = "zephyr,w1-serial";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "okay";
+
+		ds18b20 {
+			compatible = "maxim,ds18b20";
+			family-code = <0x28>;
+			resolution = <12>;
+			status = "okay";
+		};
+    };
+};
+
+&wifi {
+    status = "disabled";
+};

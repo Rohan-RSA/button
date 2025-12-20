@@ -1,0 +1,10 @@
+description: GPIO input for user buttons, used to switch on and off stuff
+
+compatible: "user-input"
+
+properties:
+  gpios:
+    type: phandle-array
+    required: true
+    description: |
+      The GPIO connected to the mechanical switch.
