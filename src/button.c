@@ -2,16 +2,27 @@
 #include <zephyr/drivers/gpio.h>
 #include "button.h"
 
-// #define SW0_NODE	DT_ALIAS(sw0)
-
-// static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET(SW0_NODE, gpios);
 static struct gpio_dt_spec led = GPIO_DT_SPEC_GET_OR(DT_ALIAS(led0), gpios, {0});
 
 static const struct gpio_dt_spec input_1 = GPIO_DT_SPEC_GET(DT_ALIAS(input1), gpios);
+static const struct gpio_dt_spec input_2 = GPIO_DT_SPEC_GET(DT_ALIAS(input2), gpios);
+static const struct gpio_dt_spec input_3 = GPIO_DT_SPEC_GET(DT_ALIAS(input3), gpios);
+static const struct gpio_dt_spec input_4 = GPIO_DT_SPEC_GET(DT_ALIAS(input4), gpios);
 
+/**
+ * @brief	These switches are the gpio connected to the isolated MOSFET driver
+ * 			IC's gate pin. Each IC has two input and two outputs to drive the GATE	of the
+ * 			connected MOSFET.
+ */
 static const struct gpio_dt_spec switch_1 = GPIO_DT_SPEC_GET(DT_ALIAS(switch1), gpios);
+static const struct gpio_dt_spec switch_2 = GPIO_DT_SPEC_GET(DT_ALIAS(switch2), gpios);
+static const struct gpio_dt_spec switch_3 = GPIO_DT_SPEC_GET(DT_ALIAS(switch3), gpios);
+static const struct gpio_dt_spec switch_4 = GPIO_DT_SPEC_GET(DT_ALIAS(switch4), gpios);
 
-static struct gpio_callback button_cb_data;
+static struct gpio_callback input1_cb_data;
+static struct gpio_callback input2_cb_data;
+static struct gpio_callback input3_cb_data;
+static struct gpio_callback input4_cb_data;
 
 static button_event_handler_t user_cb;
 
@@ -32,8 +43,22 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb,
 		    uint32_t pins)
 {
     gpio_pin_toggle_dt(&led);
-    gpio_pin_toggle_dt(&switch_1);
-    k_work_reschedule(&cooldown_work, K_MSEC(15));
+
+    // Check which input triggered the interrupt
+    if (pins & BIT(input_1.pin)) {
+        gpio_pin_toggle_dt(&switch_1);
+    }
+    else if (pins & BIT(input_2.pin)) {
+        gpio_pin_toggle_dt(&switch_2);
+    }
+    else if (pins & BIT(input_3.pin)) {
+        gpio_pin_toggle_dt(&switch_3);
+    }
+    else if (pins & BIT(input_4.pin)) {
+        gpio_pin_toggle_dt(&switch_4);
+    }
+
+    k_work_reschedule(&cooldown_work, K_MSEC(25));
 }
 
 int button_init(button_event_handler_t handler)
@@ -54,14 +79,53 @@ int button_init(button_event_handler_t handler)
 	if (err) {
         return err;
 	}
+	err = gpio_pin_configure_dt(&input_2, GPIO_INPUT);
+	if (err) {
+        return err;
+	}
+    err = gpio_pin_configure_dt(&input_3, GPIO_INPUT);
+	if (err) {
+        return err;
+	}
+    err = gpio_pin_configure_dt(&input_4, GPIO_INPUT);
+	if (err) {
+        return err;
+	}
 
-	err = gpio_pin_interrupt_configure_dt(&input_1, GPIO_INT_EDGE_TO_ACTIVE);
+	err = gpio_pin_interrupt_configure_dt(&input_1, GPIO_INT_EDGE_RISING);
+	if (err) {
+		return err;
+	}
+    err = gpio_pin_interrupt_configure_dt(&input_2, GPIO_INT_EDGE_RISING);
+	if (err) {
+		return err;
+	}
+    err = gpio_pin_interrupt_configure_dt(&input_3, GPIO_INT_EDGE_RISING);
+	if (err) {
+		return err;
+	}
+    err = gpio_pin_interrupt_configure_dt(&input_4, GPIO_INT_EDGE_RISING);
 	if (err) {
 		return err;
 	}
 
-	gpio_init_callback(&button_cb_data, button_pressed, BIT(input_1.pin));
-	err = gpio_add_callback(input_1.port, &button_cb_data);
+	gpio_init_callback(&input1_cb_data, button_pressed, BIT(input_1.pin));
+	err = gpio_add_callback(input_1.port, &input1_cb_data);
+    if (err) {
+        return err;
+    }
+    gpio_init_callback(&input2_cb_data, button_pressed, BIT(input_2.pin));
+	err = gpio_add_callback(input_2.port, &input2_cb_data);
+    if (err) {
+        return err;
+    }
+    gpio_init_callback(&input3_cb_data, button_pressed, BIT(input_3.pin));
+	err = gpio_add_callback(input_3.port, &input3_cb_data);
+    if (err) {
+        return err;
+    }
+    gpio_init_callback(&input4_cb_data, button_pressed, BIT(input_4.pin));
+	err = gpio_add_callback(input_4.port, &input4_cb_data);
     if (err) {
         return err;
     }
@@ -77,6 +141,18 @@ int button_init(button_event_handler_t handler)
 	if (err != 0) {
 		// printk("Error %d: failed to configure %s pin %d\n",
 		//        err, switch_1.port->name, switch_1.pin);
+		return 0;
+	}
+    err = gpio_pin_configure_dt(&switch_2, (GPIO_OUTPUT_LOW | GPIO_PULL_DOWN));
+	if (err != 0) {
+		return 0;
+	}
+    err = gpio_pin_configure_dt(&switch_3, (GPIO_OUTPUT_LOW | GPIO_PULL_DOWN));
+	if (err != 0) {
+		return 0;
+	}
+    err = gpio_pin_configure_dt(&switch_4, (GPIO_OUTPUT_LOW | GPIO_PULL_DOWN));
+	if (err != 0) {
 		return 0;
 	}
 
