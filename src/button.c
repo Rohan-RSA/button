@@ -2,18 +2,39 @@
 #include <zephyr/drivers/gpio.h>
 #include "button.h"
 
+int input_no;
 
 static button_event_handler_t user_cb;
 
-static void cooldown_expired(struct k_work *work)
+static void cooldown_expired(struct k_work *work, uint32_t pins)
 {
     ARG_UNUSED(work);
 
-    int val = gpio_pin_get_dt(&input_1);
-    enum button_evt evt = val ? BUTTON_EVT_PRESSED : BUTTON_EVT_RELEASED;
-    if (user_cb) {
-        user_cb(evt);
+    gpio_pin_toggle_dt(&led);
+    
+    if (input_no == 1)
+    {
+        gpio_pin_toggle_dt(&switch_1);
     }
+    if (input_no == 2)
+    {
+        gpio_pin_toggle_dt(&switch_2);
+    }
+    if (input_no == 3)
+    {
+        gpio_pin_toggle_dt(&switch_3);
+    }
+    if (input_no == 4)
+    {
+        gpio_pin_toggle_dt(&switch_4);
+    }
+    
+    // int val = gpio_pin_get_dt(&input_1);
+    // enum button_evt evt = val ? BUTTON_EVT_PRESSED : BUTTON_EVT_RELEASED;
+    // if (user_cb) {
+    //     user_cb(evt);
+    // }
+
 }
 
 static K_WORK_DELAYABLE_DEFINE(cooldown_work, cooldown_expired);
@@ -21,20 +42,24 @@ static K_WORK_DELAYABLE_DEFINE(cooldown_work, cooldown_expired);
 void button_pressed(const struct device *dev, struct gpio_callback *cb,
 		    uint32_t pins)
 {
-    gpio_pin_toggle_dt(&led);
+    input_no = 0;
 
     // Check which input triggered the interrupt
     if (pins & BIT(input_1.pin)) {
-        gpio_pin_toggle_dt(&switch_1);
+        input_no = 1;
+        // gpio_pin_toggle_dt(&switch_1);
     }
     else if (pins & BIT(input_2.pin)) {
-        gpio_pin_toggle_dt(&switch_2);
+        input_no = 2;
+        // gpio_pin_toggle_dt(&switch_2);
     }
     else if (pins & BIT(input_3.pin)) {
-        gpio_pin_toggle_dt(&switch_3);
+        input_no = 3;
+        // gpio_pin_toggle_dt(&switch_3);
     }
     else if (pins & BIT(input_4.pin)) {
-        gpio_pin_toggle_dt(&switch_4);
+        input_no = 4;
+        // gpio_pin_toggle_dt(&switch_4);
     }
 
     k_work_reschedule(&cooldown_work, K_MSEC(50));
