@@ -2,27 +2,6 @@
 #include <zephyr/drivers/gpio.h>
 #include "button.h"
 
-static struct gpio_dt_spec led = GPIO_DT_SPEC_GET_OR(DT_ALIAS(led0), gpios, {0});
-
-static const struct gpio_dt_spec input_1 = GPIO_DT_SPEC_GET(DT_ALIAS(input1), gpios);
-static const struct gpio_dt_spec input_2 = GPIO_DT_SPEC_GET(DT_ALIAS(input2), gpios);
-static const struct gpio_dt_spec input_3 = GPIO_DT_SPEC_GET(DT_ALIAS(input3), gpios);
-static const struct gpio_dt_spec input_4 = GPIO_DT_SPEC_GET(DT_ALIAS(input4), gpios);
-
-/**
- * @brief	These switches are the gpio connected to the isolated MOSFET driver
- * 			IC's gate pin. Each IC has two input and two outputs to drive the GATE	of the
- * 			connected MOSFET.
- */
-static const struct gpio_dt_spec switch_1 = GPIO_DT_SPEC_GET(DT_ALIAS(switch1), gpios);
-static const struct gpio_dt_spec switch_2 = GPIO_DT_SPEC_GET(DT_ALIAS(switch2), gpios);
-static const struct gpio_dt_spec switch_3 = GPIO_DT_SPEC_GET(DT_ALIAS(switch3), gpios);
-static const struct gpio_dt_spec switch_4 = GPIO_DT_SPEC_GET(DT_ALIAS(switch4), gpios);
-
-static struct gpio_callback input1_cb_data;
-static struct gpio_callback input2_cb_data;
-static struct gpio_callback input3_cb_data;
-static struct gpio_callback input4_cb_data;
 
 static button_event_handler_t user_cb;
 
@@ -58,7 +37,7 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb,
         gpio_pin_toggle_dt(&switch_4);
     }
 
-    k_work_reschedule(&cooldown_work, K_MSEC(25));
+    k_work_reschedule(&cooldown_work, K_MSEC(50));
 }
 
 int button_init(button_event_handler_t handler)
@@ -92,19 +71,19 @@ int button_init(button_event_handler_t handler)
         return err;
 	}
 
-	err = gpio_pin_interrupt_configure_dt(&input_1, GPIO_INT_EDGE_RISING);
+	err = gpio_pin_interrupt_configure_dt(&input_1, GPIO_INT_LEVEL_HIGH);
 	if (err) {
 		return err;
 	}
-    err = gpio_pin_interrupt_configure_dt(&input_2, GPIO_INT_EDGE_RISING);
+    err = gpio_pin_interrupt_configure_dt(&input_2, GPIO_INT_LEVEL_HIGH);
 	if (err) {
 		return err;
 	}
-    err = gpio_pin_interrupt_configure_dt(&input_3, GPIO_INT_EDGE_RISING);
+    err = gpio_pin_interrupt_configure_dt(&input_3, GPIO_INT_LEVEL_HIGH);
 	if (err) {
 		return err;
 	}
-    err = gpio_pin_interrupt_configure_dt(&input_4, GPIO_INT_EDGE_RISING);
+    err = gpio_pin_interrupt_configure_dt(&input_4, GPIO_INT_LEVEL_HIGH);
 	if (err) {
 		return err;
 	}

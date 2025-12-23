@@ -54,12 +54,9 @@ void main(void)
 {
 	int err = -1;
 
-	// printk("Button Debouncing Sample!\n");
-
 	err = button_init(button_event_handler);
 	if (err) {
-		// printk("Button Init failed: %d\n", err);
 		return;
 	}
-	// printk("Init succeeded. Waiting for event...\n");
+
 }
